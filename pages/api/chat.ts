@@ -10,15 +10,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const { messages } = req.body;
 
-  // ✅ Handle welcome message
+  // ✅ Handle welcome message (split into 3 separate bubbles)
   if (
     messages.length === 1 &&
     messages[0].role === "user" &&
     messages[0].content.toLowerCase().includes("start")
   ) {
     return res.status(200).json({
-      reply:
-        "Hey astronaut 🧑‍🚀! Want to talk to an adult and don't know how to start? I'm here to help you prepare for that convo. Lots of people find it hard to start a conversation, but we can always prepare and practice. To begin, tell me, who would you like to talk to?",
+      reply: [
+        "Hey astronaut 🧑‍🚀! Want to talk to an adult and don't know how to start?",
+        "I'm here to help you prepare for that convo. Lots of people find it hard to start a conversation, but we can always prepare and practice.",
+        "To begin, tell me, who would you like to talk to?",
+      ],
     });
   }
 
