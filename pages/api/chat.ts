@@ -19,7 +19,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const reply = completion.choices[0].message?.content || "";
     res.status(200).json({ reply });
   } catch (error: any) {
+    console.error("OpenAI API Error:", error);
     res.status(500).json({ error: error.message });
   }
 }
-
