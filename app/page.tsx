@@ -19,7 +19,6 @@ export default function ChatPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: [...messages, userMessage] }),
       });
-
       const data = await res.json();
       const botMessage = { role: "assistant", content: data.reply };
       setMessages([...messages, userMessage, botMessage]);
