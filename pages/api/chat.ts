@@ -6,48 +6,50 @@ const openai = new OpenAI({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== "POST") return res.status(405).end();
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed. Use POST." });
+  }
 
   const { messages } = req.body;
 
-  // ✅ Handle welcome message (split into 3 separate bubbles)
-  if (
-    messages.length === 1 &&
-    messages[0].role === "user" &&
-    messages[0].content.toLowerCase().includes("start")
-  ) {
-    return res.status(200).json({
-      reply: [
-        "Hey astronaut 🧑‍🚀! Want to talk to an adult and don't know how to start?",
-        "I'm here to help you prepare for that convo. Lots of people find it hard to start a conversation, but we can always prepare and practice.",
-        "To begin, tell me, who would you like to talk to?",
-      ],
-    });
+  // 🔎 Diagnostic check
+  if (!process.env.OPENAI_API_KEY) {
+    console.error("❌ Missing OPENAI_API_KEY environment variable");
+    return res.status(500).json({ error: "Missing OPENAI_API_KEY environment variable" });
   }
 
   try {
-    const systemPrompt = `
-You are Y-Convo — a warm, chill, supportive chatbot who helps middle- and high-school students
-prepare for conversations with adults. You guide them step by step, like an empathetic older friend.
-Avoid sounding too formal or too cheerful — keep it natural and kind.
+    if (
+      messages.length === 1 &&
+      messages[0].role === "user" &&
+      messages[0].content.toLowerCase().includes("start")
+    ) {
+      return res.status(200).json({
+        reply: [
+          "Hey astronaut 🧑‍🚀! Want to talk to an adult and don't know how to start?",
+          "I'm here to help you prepare for that convo. Lots of people find it hard to start a conversation, but we can always prepare and practice.",
+          "To begin, tell me, who would you like to talk to?",
+        ],
+      });
+    }
 
-Follow this structure:
-1. Ask who the user wants to talk to and what it's about (Step 1).
-2. Help organize thoughts using the Whole Message approach (Step 2).
-3. Guide rephrasing and offer tips if they want (Step 3).
-If user mentions distress or danger, switch to a softer, more empathetic tone.
-Keep it short, warm, and natural.
-`;
-
+    // ✅ Call OpenAI
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: [{ role: "system", content: systemPrompt }, ...messages],
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are Y-Convo, a warm and chill chatbot helping teens prepare for conversations with adults. Be brief, supportive, and natural.",
+        },
+        ...messages,
+      ],
     });
 
-    const reply = completion.choices[0].message?.content?.trim() || "";
-    res.status(200).json({ reply });
+    const reply = completion.choices[0].message?.content?.trim() || "(no reply)";
+    return res.status(200).json({ reply });
   } catch (err: any) {
-    console.error("OpenAI API Error:", err.message);
-    res.status(500).json({ error: err.message });
+    console.error("❌ OpenAI API Error:", err);
+    return res.status(500).json({ error: err.message || JSON.stringify(err) });
   }
 }
