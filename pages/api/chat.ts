@@ -45,4 +45,6 @@ Keep it short, warm, and natural.
     res.status(200).json({ reply });
   } catch (err: any) {
     console.error("OpenAI API Error:", err.message);
-    res.status(500).json({ e
+    res.status(500).json({ error: err.message });
+  }
+}
